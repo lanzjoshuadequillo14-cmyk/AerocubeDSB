@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AeroCube | Dashboard</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta property="og:image" content="https://bolt.new/static/og_default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://bolt.new/static/og_default.png">
+</head>
+<body>
+
+  <!-- Mobile Top Header Bar with Hamburger Button -->
+  <div class="mobile-top-bar">
+    <button class="menu-toggle-btn" id="menuToggle"><i data-lucide="menu"></i></button>
+    <span class="mobile-brand">AeroCube</span>
+  </div>
+
+  <!-- Backdrop Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top-group">
+      <div class="sidebar-logo">
+        <img src="logo/aerocube logo.png" alt="AeroCube Logo" onerror="this.style.display='none'">
+      </div>
+      <div class="nav-links">
+        <a href="index.html" class="nav-item active">
+          <i data-lucide="layout-grid"></i><span>Dashboard</span>
+        </a>
+        <a href="graph.html" class="nav-item">
+          <i data-lucide="line-chart"></i><span>Analytics</span>
+        </a>
+        <a href="History.html" class="nav-item">
+          <i data-lucide="clock"></i><span>History</span>
+        </a>
+        <a href="aeroplug.html" class="nav-item">
+          <i data-lucide="plug"></i><span>AeroPlug</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i data-lucide="settings"></i><span>Settings</span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="nav-item install-app-item" id="install-app-btn" type="button" hidden>
+        <i data-lucide="download"></i><span>Install App</span>
+      </button>
+      <a href="about.html" class="nav-item">
+        <i data-lucide="help-circle"></i><span>About</span>
+      </a>
+      <a href="#" id="btn-logout" class="nav-item logout-link">
+        <i data-lucide="log-out"></i><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">
+        <h1>AeroCube Dashboard</h1>
+        <p class="header-subtitle">Real-time indoor air quality monitoring</p>
+      </div>
+      <div class="header-badges">
+        <div class="badge badge-live">
+          <div class="badge-dot"></div>LIVE SYNC
+        </div>
+        <div class="badge badge-device" id="device-connection-badge">
+          <span id="device-status-text">CONNECTING...</span>
+        </div>
+        <button class="notification-button" id="btn-notifications" type="button">
+          <i data-lucide="bell"></i><span>Enable Notifications</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Device Status Bar -->
+    <section class="device-status-bar" id="device-status-bar">
+      <div class="device-status-left">
+        <div class="device-indicator" id="device-indicator"></div>
+        <div>
+          <div class="device-name" id="device-name">AeroCube 01</div>
+          <div class="device-last-seen" id="device-last-seen">Last data received: --</div>
+        </div>
+      </div>
+      <div class="device-status-right">
+        <span class="device-uptime" id="device-uptime"></span>
+        <div class="top-buzzer-control">
+          <div>
+            <div class="top-buzzer-label">AeroCube Buzzer</div>
+            <div class="top-buzzer-state" id="text-buzzer">--</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="switch-buzzer" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Overall Air Quality Status Banner -->
+    <section class="aq-status-banner" id="aq-banner">
+      <div class="aq-banner-left">
+        <div class="aq-banner-label">AIR QUALITY</div>
+        <div class="aq-banner-status" id="aq-banner-status">--</div>
+        <div class="aq-banner-desc" id="aq-banner-desc">Awaiting data from AeroCube device...</div>
+      </div>
+      <div class="aq-banner-icon" id="aq-banner-icon">
+        <i data-lucide="activity"></i>
+      </div>
+    </section>
+
+    <!-- Sensor Cards Grid -->
+    <section class="metrics-grid">
+      <!-- CO2 -->
+      <div class="card" id="card-co2">
+        <div class="card-header">
+          <div class="card-icon"><i data-lucide="wind"></i></div>
+          CO<sub>2</sub>
+        </div>
+        <div class="card-body">
+          <div class="card-value" id="val-co2">-- <span>ppm</span></div>
+          <div class="card-status" id="status-co2">Awaiting data</div>
+        </div>
+      </div>
+
+      <!-- PM AQI -->
+      <div class="card" id="card-pmaqi">
+        <div class="card-header">
+          <div class="card-icon"><i data-lucide="gauge"></i></div>
+          PM AQI
+        </div>
+        <div class="card-body">
+          <div class="card-value" id="val-pmaqi">-- <span>AQI</span></div>
+          <div class="card-status" id="status-pmaqi">Awaiting data</div>
+        </div>
+      </div>
+
+      <!-- VOC Index -->
+      <div class="card" id="card-voc">
+        <div class="card-header">
+          <div class="card-icon"><i data-lucide="flask-conical"></i></div>
+          VOC INDEX
+        </div>
+        <div class="card-body">
+          <div class="card-value" id="val-voc">--</div>
+          <div class="card-status" id="status-voc">Awaiting data</div>
+        </div>
+      </div>
+
+      <!-- Temperature and Humidity -->
+      <div class="card pm-detail-card" id="card-environment-detail">
+        <div class="card-header">
+          <div class="card-icon"><i data-lucide="thermometer"></i></div>
+          ENVIRONMENT
+        </div>
+        <div class="pm-mini-grid">
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">TEMPERATURE</div>
+            <div class="pm-mini-val" id="val-temp">-- <span>°C</span></div>
+          </div>
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">HUMIDITY</div>
+            <div class="pm-mini-val" id="val-humidity">-- <span>%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional PM readings -->
+      <div class="card pm-detail-card" id="card-pm-detail">
+        <div class="card-header">
+          <div class="card-icon"><i data-lucide="grid"></i></div>
+          PARTICULATE MATTER
+        </div>
+        <div class="pm-mini-grid">
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">PM 2.5</div>
+            <div class="pm-mini-val" id="val-pm25">-- <span>µg/m³</span></div>
+          </div>
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">PM 10</div>
+            <div class="pm-mini-val" id="val-pm10">-- <span>µg/m³</span></div>
+          </div>
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">PM 1.0</div>
+            <div class="pm-mini-val" id="val-pm1">-- <span>µg/m³</span></div>
+          </div>
+          <div class="pm-mini-box">
+            <div class="pm-mini-label">PM 4.0</div>
+            <div class="pm-mini-val" id="val-pm4">-- <span>µg/m³</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recommendations Section -->
+    <section class="recommendations-section">
+      <div class="section-header">
+        <h2><i data-lucide="lightbulb"></i> Air Quality Recommendations</h2>
+      </div>
+      <div class="recommendations-content" id="recommendations-content">
+        <p class="rec-waiting">Waiting for telemetry data to generate recommendations...</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>lucide.createIcons();</script>
+  <script src="pwa.js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
