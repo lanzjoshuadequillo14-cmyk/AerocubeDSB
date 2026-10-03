@@ -1322,3 +1322,228 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
   .aq-status-banner { padding: 20px; }
   .header-title h1 { font-size: 22px; }
 }
+
+/* =========================================================
+   PRESENTATION POLISH (additive overrides only)
+========================================================= */
+
+/* Cards: subtle depth + hover */
+.card {
+  background: linear-gradient(180deg, #151d2c 0%, var(--bg-card) 100%);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  min-height: 150px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+/* Card header: icon tile + tidy CO2 subscript */
+.card-icon {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+.card-header sub {
+  align-self: flex-end;
+  font-size: 9px;
+  line-height: 1;
+  margin-left: -8px;
+  margin-bottom: 3px;
+  letter-spacing: 0;
+}
+
+/* Value + status alignment */
+.card-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+.card-value span { margin-left: 2px; letter-spacing: 0; }
+.card-status {
+  letter-spacing: 0.6px;
+  font-size: 11px;
+  border: 1px solid transparent;
+  margin-top: auto;
+}
+.card-status.good     { border-color: rgba(16, 185, 129, 0.25); }
+.card-status.elevated { border-color: rgba(234, 179, 8, 0.25); }
+.card-status.poor     { border-color: rgba(239, 68, 68, 0.25); }
+
+/* Mini boxes (Environment + Particulate Matter) */
+.pm-mini-box {
+  background: rgba(24, 34, 50, 0.7);
+  padding: 12px 14px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.pm-mini-label { letter-spacing: 0.8px; text-transform: uppercase; }
+.pm-mini-val {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pm-mini-val span { margin-left: 3px; }
+
+/* Layout: Particulate card spans the full row, 4 boxes across */
+#card-pm-detail { grid-column: 1 / -1; }
+#card-pm-detail .pm-mini-grid { grid-template-columns: repeat(4, 1fr); }
+
+/* Environment card: stretch boxes to fill the card height */
+#card-environment-detail .pm-mini-grid { flex: 1; align-content: stretch; }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  #card-pm-detail { grid-column: span 2; }
+  #card-pm-detail .pm-mini-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  #card-pm-detail { grid-column: 1 / -1; }
+  #card-pm-detail .pm-mini-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .metrics-grid { grid-template-columns: 1fr; }
+  #card-pm-detail { grid-column: auto; }
+}
+@media (max-width: 600px) {
+  #card-pm-detail .pm-mini-grid { grid-template-columns: 1fr 1fr; }
+}
+/* =========================================================
+   INDOOR AIR QUALITY GUIDE (Mobile Responsive)
+========================================================= */
+.guide-section {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 24px;
+}
+
+.guide-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.guide-subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+/* Stack vertically on mobile by default */
+.guide-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Side-by-side layout for tablets and desktops */
+@media (min-width: 768px) {
+  .guide-body {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .guide-tips {
+    flex: 1;
+  }
+  .guide-reference {
+    flex: 1.2;
+  }
+}
+
+/* Tips Layout */
+.guide-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: var(--bg-inner);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.guide-tip-icon {
+  color: var(--accent-blue);
+  flex-shrink: 0;
+  display: flex;
+}
+
+.guide-tip strong {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.guide-tip p {
+  font-size: 13px;
+  color: var(--text-sub);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Table Layout and Mobile Scroll Wrapper */
+.guide-reference h3 {
+  font-size: 15px;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.guide-table-wrap {
+  width: 100%;
+  overflow-x: auto; /* Enables horizontal scroll on mobile */
+  -webkit-overflow-scrolling: touch;
+  background-color: var(--bg-inner);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.guide-table {
+  width: 100%;
+  min-width: 400px; /* Forces table to retain shape and trigger scroll on tiny screens */
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.guide-table th, 
+.guide-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap; /* Prevents text wrapping in tight columns */
+}
+
+.guide-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  background-color: rgba(0,0,0,0.2);
+}
+
+.guide-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Color statuses for table cells */
+.g-good { color: var(--accent-green); }
+.g-elevated { color: var(--accent-yellow); }
+.g-poor { color: var(--accent-red); }
+
+/* Extra padding adjustments for smaller mobile devices */
+@media (max-width: 480px) {
+  .guide-section {
+    padding: 16px;
+  }
+  .guide-tip {
+    padding: 12px;
+  }
+}

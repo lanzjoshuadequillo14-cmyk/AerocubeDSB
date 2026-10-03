@@ -122,6 +122,18 @@ notificationButton?.addEventListener('click', async () => {
 updateNotificationButton();
 
 // ============================================================
+//  THRESHOLDS (kept in sync with the Indoor Air Quality Guide)
+//    CO2     good < 1000   | elevated 1000–1499 | poor 1500+
+//    VOC     good < 150    | elevated 150–249   | poor 250+
+//    PM AQI  good 0–100    | elevated 101–150   | poor 151+
+// ============================================================
+const THRESHOLDS = {
+  co2:   { elevated: 1000, poor: 1500 },
+  voc:   { elevated: 150,  poor: 250 },
+  pmaqi: { elevated: 101,  poor: 151 }
+};
+
+// ============================================================
 //  HELPER FUNCTIONS
 // ============================================================
 
@@ -139,9 +151,10 @@ function setStatusPill(element, state, label) {
   element.innerText = label;
 }
 
-// Determine CO2 status from value (using firmware thresholds)
+// Determine CO2 status from value
 function getCo2Status(co2) {
-  if (co2 >= 1000) return { state: 'elevated', label: 'ELEVATED' };
+  if (co2 >= THRESHOLDS.co2.poor) return { state: 'poor', label: 'POOR' };
+  if (co2 >= THRESHOLDS.co2.elevated) return { state: 'elevated', label: 'ELEVATED' };
   return { state: 'good', label: 'NORMAL' };
 }
 
@@ -161,14 +174,15 @@ function getPm10Status(pm10) {
 
 // Determine PM AQI status from firmware value
 function getPmAqiStatus(aqi) {
-  if (aqi >= 100) return { state: 'poor', label: 'POOR' };
-  if (aqi >= 50) return { state: 'elevated', label: 'ELEVATED' };
+  if (aqi >= THRESHOLDS.pmaqi.poor) return { state: 'poor', label: 'POOR' };
+  if (aqi >= THRESHOLDS.pmaqi.elevated) return { state: 'elevated', label: 'ELEVATED' };
   return { state: 'good', label: 'GOOD' };
 }
 
 // Determine VOC status
 function getVocStatus(voc) {
-  if (voc >= 150) return { state: 'elevated', label: 'ELEVATED' };
+  if (voc >= THRESHOLDS.voc.poor) return { state: 'poor', label: 'POOR' };
+  if (voc >= THRESHOLDS.voc.elevated) return { state: 'elevated', label: 'ELEVATED' };
   return { state: 'good', label: 'NORMAL' };
 }
 
@@ -276,6 +290,9 @@ function notifyMetricState(metricKey, state, title, detail) {
   }
 }
 
+// Round long sensor decimals for display only
+const fmt = (v, d = 1) => (typeof v === 'number' ? Number(v.toFixed(d)) : v);
+
 // ============================================================
 //  1. LISTEN FOR LIVE TELEMETRY
 // ============================================================
@@ -300,7 +317,7 @@ onValue(ref(db, aeroCubePath + '/telemetry'), (snapshot) => {
 
   // --- PM2.5 ---
   if (data.pm && data.pm.pm2p5 !== undefined) {
-    valPm25.innerHTML = data.pm.pm2p5 + ' <span>µg/m³</span>';
+    valPm25.innerHTML = fmt(data.pm.pm2p5) + ' <span>µg/m³</span>';
     const s = getPm25Status(data.pm.pm2p5);
     setStatusPill(statusPm25, s.state, s.label);
     setCardVisual('card-pm25', s.state);
@@ -326,7 +343,7 @@ onValue(ref(db, aeroCubePath + '/telemetry'), (snapshot) => {
 
   // --- PM10 ---
   if (data.pm && data.pm.pm10p0 !== undefined) {
-    valPm10.innerHTML = data.pm.pm10p0 + ' <span>µg/m³</span>';
+    valPm10.innerHTML = fmt(data.pm.pm10p0) + ' <span>µg/m³</span>';
     const s = getPm10Status(data.pm.pm10p0);
     setStatusPill(statusPm10, s.state, s.label);
     setCardVisual('card-pm10', s.state);
@@ -334,7 +351,7 @@ onValue(ref(db, aeroCubePath + '/telemetry'), (snapshot) => {
 
   // --- Temperature ---
   if (data.temp !== undefined) {
-    valTemp.innerHTML = data.temp + ' <span>°C</span>';
+    valTemp.innerHTML = fmt(data.temp) + ' <span>°C</span>';
   }
 
   // --- Humidity ---
@@ -344,8 +361,8 @@ onValue(ref(db, aeroCubePath + '/telemetry'), (snapshot) => {
 
   // --- Additional PM (1.0 and 4.0) ---
   if (data.pm) {
-    if (data.pm.pm1p0 !== undefined) valPm1.innerHTML = data.pm.pm1p0 + ' <span>µg/m³</span>';
-    if (data.pm.pm4p0 !== undefined) valPm4.innerHTML = data.pm.pm4p0 + ' <span>µg/m³</span>';
+    if (data.pm.pm1p0 !== undefined) valPm1.innerHTML = fmt(data.pm.pm1p0) + ' <span>µg/m³</span>';
+    if (data.pm.pm4p0 !== undefined) valPm4.innerHTML = fmt(data.pm.pm4p0) + ' <span>µg/m³</span>';
   }
 
   // --- Recommendations ---
@@ -397,38 +414,40 @@ switchBuzzer?.addEventListener('change', (e) => {
 });
 
 // ============================================================
-//  6. RECOMMENDATIONS ENGINE
+//  6. RECOMMENDATIONS ENGINE (uses the same thresholds as the cards)
 // ============================================================
 function updateRecommendations(data) {
   const recs = [];
-  const overallState = (data.airQualityStatus || '').toUpperCase();
 
   // CO2 recommendation
-  if (data.co2 !== undefined && data.co2 >= 1000) {
+  if (data.co2 !== undefined && data.co2 >= THRESHOLDS.co2.elevated) {
+    const isPoor = data.co2 >= THRESHOLDS.co2.poor;
     recs.push({
-      state: 'elevated',
+      state: isPoor ? 'poor' : 'elevated',
       icon: 'wind',
-      title: 'CO₂ concentration is elevated.',
+      title: isPoor ? 'CO₂ concentration is poor.' : 'CO₂ concentration is elevated.',
       text: 'Consider improving indoor ventilation or activating the connected ventilation device.'
     });
   }
 
-  // Particulate matter recommendation
-  if (data.pm && (data.pm.pm2p5 >= 35 || data.pm.pm10p0 >= 50)) {
+  // Particulate matter recommendation (based on PM AQI)
+  if (data.pm && data.pm.pmAQI !== undefined && data.pm.pmAQI >= THRESHOLDS.pmaqi.elevated) {
+    const isPoor = data.pm.pmAQI >= THRESHOLDS.pmaqi.poor;
     recs.push({
-      state: 'elevated',
+      state: isPoor ? 'poor' : 'elevated',
       icon: 'circle-dot',
-      title: 'Particulate concentration is elevated.',
+      title: isPoor ? 'Particulate concentration is poor.' : 'Particulate concentration is elevated.',
       text: 'Consider reducing indoor particulate sources and improving ventilation or filtration.'
     });
   }
 
   // VOC recommendation
-  if (data.VOCidx !== undefined && data.VOCidx >= 150) {
+  if (data.VOCidx !== undefined && data.VOCidx >= THRESHOLDS.voc.elevated) {
+    const isPoor = data.VOCidx >= THRESHOLDS.voc.poor;
     recs.push({
-      state: 'elevated',
+      state: isPoor ? 'poor' : 'elevated',
       icon: 'flask-conical',
-      title: 'VOC levels are elevated.',
+      title: isPoor ? 'VOC levels are poor.' : 'VOC levels are elevated.',
       text: 'Consider checking for possible indoor sources of volatile compounds and improving ventilation.'
     });
   }
